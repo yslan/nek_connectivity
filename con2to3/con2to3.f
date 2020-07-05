@@ -8,7 +8,7 @@ c----------------------------------------------------------------------
       character*1  fout1(80)
       equivalence (fout1,fout)
 
-      logical ifflow,ifheat
+      logical ifflow,ifheat,ifcht
 
       common /arral/ ifcirc
       logical ifcirc
@@ -77,7 +77,7 @@ c     Find input type
       endif
 
 c     Read input: 2D con/co2
-      call read_2dcon(file,nel,nelv,nvtx2d,intype) ! the data is saved into global variables
+      call read_2dcon(file,nel,nelv,nvtx2d,intype,ifcht) ! the data is saved into global variables
 
 c     Open output file
       if (itype.eq.0) then
@@ -90,7 +90,7 @@ c     Open output file
       endif
 
 c     Write output 
-      call con23(neln,nvtx2d,nvtx3d,itype)
+      call con23(neln,nvtx2d,nvtx3d,itype,ifcht)
       write(6,6) nvtx3d,neln,(fout1(k),k=1,lou+4)
     6 format(i12,' vertices and ',i12,' elements written to ',40a1)
 
@@ -105,7 +105,7 @@ c     Close output files
       stop
       end
 c-----------------------------------------------------------------------
-      subroutine con23(neln,nvtx2d,nvtx3d,itype)
+      subroutine con23(neln,nvtx2d,nvtx3d,itype,ifcht)
 c     input nlev,nel,nvtx2d,itype,icon2d
 c     output neln,nvtx3d
 #     include "SIZE"
@@ -116,7 +116,7 @@ c     output neln,nvtx3d
       data   test  / 6.54321 /
  
 c     Nekton stuff
-      logical ifflow,ifheat,ifmhd
+      logical ifflow,ifheat,ifmhd,ifcht
 
       common /arral/ ifcirc
       logical ifcirc
@@ -126,6 +126,7 @@ c     Nekton stuff
 
       version = '#v001'
       neln = nlev*nel
+      nelnv= nlev*nelv
 
       ! Choose BC for Z direction
       write(6,*)'Enter Z boundary condition (1=periodic 0=others)'
@@ -142,38 +143,38 @@ c     Nekton stuff
       if(itype.eq.1) then    !co2
         ! write header
         call blank(hdr,132)
-        write(hdr,1) version,neln,neln,8
+        write(hdr,1) version,neln,nelnv,8
         call byte_write(hdr,132/4,ierr)
         call byte_write(test,1,ierr) ! write the endian discriminator
         if(ierr.gt.0) call exitti('fail to write header',ierr)
         ! write co2
-        call dump_co2(ifper,nvtx2d,nvtx3d)
+        call dump_co2(ifper,nvtx2d,nvtx3d,ifcht)
       else
 
         ! write header
-        write(11,1) version,neln,neln,8
+        write(11,1) version,neln,nelnv,8
         ! write con
-        call dump_con(ifper,nvtx2d,nvtx3d)
+        call dump_con(ifper,nvtx2d,nvtx3d,ifcht)
       endif
 
     1 format(a5,3i12) ! header
       return
       end
 c-----------------------------------------------------------------------
-      subroutine dump_con(ifper,nvtx2d,nvtx3d)
+      subroutine dump_con(ifper,nvtx2d,nvtx3d,ifcht)
 c     input: iper, icon2d, nvtx2d
 c     output: nvtx3d
 #     include "SIZE"
       
-      logical ifper
+      logical ifper,ifcht
       integer e
 
       write(6,*)'Z(5)-Z(6) Periodic=',ifper
 
       ivtx=0
       do i=1,nlev-1
-        do j=1,nel
-          e = j + (i-1)*nel
+        do j=1,nelv
+          e = j + (i-1)*nelv
           write(11,2) e
      $     ,(icon2d(ii,j)+ivtx,ii=1,4)
      $     ,(icon2d(ii,j)+ivtx+nvtx2d,ii=1,4)
@@ -183,8 +184,8 @@ c     output: nvtx3d
 
       if (ifper) then
         i=nlev
-        do j=1,nel
-          e = j + (i-1)*nel
+        do j=1,nelv
+          e = j + (i-1)*nelv
           write(11,2) e
      $     ,(icon2d(ii,j)+ivtx,ii=1,4)
      $     ,(icon2d(ii,j),ii=1,4)
@@ -192,13 +193,51 @@ c     output: nvtx3d
         ivtx=ivtx+nvtx2d
       else
         i=nlev
-        do j=1,nel
-          e = j + (i-1)*nel
+        do j=1,nelv
+          e = j + (i-1)*nelv
           write(11,2) e
      $     ,(icon2d(ii,j)+ivtx,ii=1,4)
      $     ,(icon2d(ii,j)+ivtx+nvtx2d,ii=1,4)
         enddo
         ivtx=ivtx+nvtx2d*2
+      endif
+
+      if(ifcht)then
+        ndel=nel-nelv
+        ivtx=0
+        do i=1,nlev-1
+          do j=1,ndel
+            e = j + (i-1)*ndel + nelv*nlev
+            j2d=j+nelv
+            write(11,2) e
+     $       ,(icon2d(ii,j2d)+ivtx,ii=1,4)
+     $       ,(icon2d(ii,j2d)+ivtx+nvtx2d,ii=1,4)
+          enddo
+          ivtx=ivtx+nvtx2d
+        enddo
+
+        if (ifper) then
+          i=nlev
+          do j=1,ndel
+            e = j + (i-1)*ndel + nelv*nlev
+            j2d=j+nelv
+            write(11,2) e
+     $       ,(icon2d(ii,j2d)+ivtx,ii=1,4)
+     $       ,(icon2d(ii,j2d),ii=1,4)
+          enddo
+          ivtx=ivtx+nvtx2d
+        else
+          i=nlev
+          do j=1,ndel
+            e = j + (i-1)*ndel + nelv*nlev
+            j2d=j+nelv
+            write(11,2) e
+     $       ,(icon2d(ii,j2d)+ivtx,ii=1,4)
+     $       ,(icon2d(ii,j2d)+ivtx+nvtx2d,ii=1,4)
+          enddo
+          ivtx=ivtx+nvtx2d*2
+        endif
+
       endif
 
       nvtx3d=ivtx
@@ -207,12 +246,12 @@ c     output: nvtx3d
       return
       end
 c-----------------------------------------------------------------------
-      subroutine dump_co2(ifper,nvtx2d,nvtx3d)
+      subroutine dump_co2(ifper,nvtx2d,nvtx3d,ifcht)
 c     input: iper, icon2d, nvtx2d
 c     output: nvtx3d
 #     include "SIZE"
 
-      logical ifper
+      logical ifper,ifcht
       integer iwrk(8+1),e
 
       write(6,*)'Z(5)-Z(6) Periodic=',ifper
@@ -221,8 +260,8 @@ c     output: nvtx3d
 
       ivtx=0
       do i=1,nlev-1
-        do j=1,nel
-          e = j + (i-1)*nel
+        do j=1,nelv
+          e = j + (i-1)*nelv
 
           iwrk(1)=e
           do k=1,4
@@ -236,8 +275,8 @@ c     output: nvtx3d
 
       if (ifper) then
         i=nlev
-        do j=1,nel
-          e = j + (i-1)*nel
+        do j=1,nelv
+          e = j + (i-1)*nelv
 
           iwrk(1)=e
           do k=1,4
@@ -250,8 +289,8 @@ c     output: nvtx3d
 
       else
         i=nlev
-        do j=1,nel
-          e = j + (i-1)*nel
+        do j=1,nelv
+          e = j + (i-1)*nelv
 
           iwrk(1)=e
           do k=1,4
@@ -261,6 +300,59 @@ c     output: nvtx3d
           call byte_write(iwrk,9,ierr)
         enddo
         ivtx=ivtx+nvtx2d*2
+      endif
+
+
+      if(ifcht)then
+
+        ivtx=0
+        ndel=nel-nelv
+        do i=1,nlev-1
+          do j=1,ndel
+            e = j + (i-1)*ndel + nelv*nlev
+            j2d=j+nelv
+  
+            iwrk(1)=e
+            do k=1,4
+              iwrk(k+1) = icon2d(k,j2d)+ivtx
+              iwrk(k+5) = icon2d(k,j2d)+ivtx+nvtx2d
+            enddo
+            call byte_write(iwrk,9,ierr)
+          enddo
+          ivtx=ivtx+nvtx2d
+        enddo
+  
+        if (ifper) then
+          i=nlev
+          do j=1,ndel
+            e = j + (i-1)*ndel + nelv*nlev
+            j2d=j+nelv
+  
+            iwrk(1)=e
+            do k=1,4
+              iwrk(k+1) = icon2d(k,j2d)+ivtx
+              iwrk(k+5) = icon2d(k,j2d)
+            enddo
+            call byte_write(iwrk,9,ierr)
+          enddo
+          ivtx=ivtx+nvtx2d
+  
+        else
+          i=nlev
+          do j=1,ndel
+            e = j + (i-1)*ndel + nelv*nlev
+            j2d=j+nelv
+  
+            iwrk(1)=e
+            do k=1,4
+              iwrk(k+1) = icon2d(k,j2d)+ivtx
+              iwrk(k+5) = icon2d(k,j2d)+ivtx+nvtx2d
+            enddo
+            call byte_write(iwrk,9,ierr)
+          enddo
+          ivtx=ivtx+nvtx2d*2
+        endif
+
       endif
 
       if(ierr.gt.0) call exitti('write error',ierr)
@@ -514,7 +606,7 @@ c     Get file name
       return
       end
 c-----------------------------------------------------------------------
-      subroutine read_2dco2(fname,nelgti,nelgvi)
+      subroutine read_2dco2(fname,nelgti,nelgvi,ifcht)
 #     include "SIZE"
 
       character*1  fname(1)
@@ -527,6 +619,7 @@ c-----------------------------------------------------------------------
       logical ifbswap,if_byte_swap_test
       real*4  test
       integer iwrk(1+8),nelgti,nelgvi
+      logical ifcht
 
       ierr=0
 
@@ -551,10 +644,11 @@ c-----------------------------------------------------------------------
       if(version.eq.'#v001') wdsizi=8
       if(nelgti.gt.nelxym) call exitti
      $  ('ABORT: input mesh is too large ',nelxym)
-      if(nelgti.ne.nelgvi) call exitti
-     $  ('ABORT: nelv .ne. nelt is not supported',nelgvi)
       if(nv.ne.4) call exitti
      $  ('ABORT: input co2 is not 2D ',nv)
+
+      ifcht=.false.
+      if(nelgti.ne.nelgvi) ifcht=.true.
 
       call byte_read(test,1,ierr)
       if(ierr.ne.0) call exitti
@@ -575,7 +669,7 @@ c-----------------------------------------------------------------------
       return
       end
 c-----------------------------------------------------------------------
-      subroutine read_2dcon(fname,nelgti,nelgvi,nvtx2d,intype)
+      subroutine read_2dcon(fname,nelgti,nelgvi,nvtx2d,intype,ifcht)
 
 #     include "SIZE"
       character*1  fname(1)
@@ -586,6 +680,7 @@ c-----------------------------------------------------------------------
       character*5 version
       integer wdsizi
       integer iwrk(1+8),nelgti,nelgvi,nvtx2d
+      logical ifcht
 
       if(intype.eq.0) then
         ! Open con
@@ -602,10 +697,11 @@ c-----------------------------------------------------------------------
         if(version.eq.'#v001')wdsizi=8
         if(nelgti.gt.nelxym) call exitti
      $  ('ABORT:  increase nelxym in con2to3/SIZE ',nelxym)
-        if(nelgti.ne.nelgvi) call exitti
-     $  ('ABORT: nelv .ne. nelt is not supported',nelgvi)
         if(nv.ne.4) call exitti
      $  ('ABORT:  input con is not 2D ',nv)
+
+        ifcht=.false.
+        if(nelgti.ne.nelgvi) ifcht=.true.
 
         ! Read connectivity
         do e=1,nelgti
@@ -616,7 +712,7 @@ c-----------------------------------------------------------------------
 
       else
 
-        call read_2dco2(fname,nelgti,nelgvi)
+        call read_2dco2(fname,nelgti,nelgvi,ifcht)
 
       endif
 
@@ -625,6 +721,7 @@ c-----------------------------------------------------------------------
       call chk_vtx(icon2d,nelgti,nvtx2d,ierr)
       if(ierr.gt.0) call exitti
      $  ('ABORT: chk_vtx failed',ierr)
+      write(6,*)'found',nvtx2d,' vertices in 2d' 
 
     1 format(a5,3i12) ! header
     2 format(5i12)
