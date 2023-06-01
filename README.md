@@ -15,6 +15,9 @@
 - (WIP) ./maketools genmap/
   - (WIP) contomap: genmap by reading con/co2
 
+- gencon\_box/ (MATLAB)
+  - generate co2 file for a box
+
 - tests/
   - co2tocon: do `./run.sh` (check path inside)  
   - con2to3: do `./run.sh` (need python3)  
