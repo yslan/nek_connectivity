@@ -27,5 +27,5 @@ end
 end
 fprintf('done!! (%2.2e sec)\n',toc(t0));
 
-Hexes = Hexes(:,[1,2,4,3,5,6,8,7]); % This is stupid
+%Hexes = Hexes(:,[1,2,4,3,5,6,8,7]); % This is stupid
 

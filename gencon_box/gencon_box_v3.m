@@ -14,10 +14,16 @@ t0=tic;
 for iz=1:nelz
    [ex,ey] = ndgrid(1:nelx,1:nely);
    ex=ex(:);ey=ey(:);ez=0*ex(:)+iz;
-   
+
+   % lexicographic
    idx = [ex, ex+1, ex, ex+1, ex, ex+1, ex, ex+1];
    idy = [ey, ey, ey+1, ey+1, ey, ey, ey+1, ey+1];
    idz = [ez, ez, ez, ez, ez+1, ez+1, ez+1, ez+1];
+
+%   % counter-clockwise
+%   idx = [ex, ex+1, ex+1, ex, ex, ex+1, ex+1, ex];
+%   idy = [ey, ey, ey+1, ey+1, ey, ey, ey+1, ey+1];
+%   idz = [ez, ez, ez, ez, ez+1, ez+1, ez+1, ez+1];
    
    itmp = (idz-1)*ly*lx + (idy-1)*lx + idx;
    itmp = reshape(itmp,nelx*nely,8);
@@ -29,5 +35,5 @@ for iz=1:nelz
 end
 fprintf('done!! (%2.2e sec)\n',toc(t0));
 
-Hexes = Hexes(:,[1,2,4,3,5,6,8,7]); % This is stupid
+%Hexes = Hexes(:,[1,2,4,3,5,6,8,7]); % This is stupid
 

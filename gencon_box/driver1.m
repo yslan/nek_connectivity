@@ -40,9 +40,11 @@ switch iversion
       fprintf('iversion = %d is not support! [1/2/3/-1]',iversion); error();
 end
 
+ifperm=0;
 fout = sprintf('%s/nelx%d_nely%d_nelz%d',cname,nelx,nely,nelz);
-dump_nek_con(fout,Hexes,1);      % mesh.co2
-%dump_nek_con(fout,Hexes,0);      % mesh.co2
+fprintf('  dump into file %s ...\n',fout);
+dump_nek_con(fout,Hexes,1,ifperm);      % mesh.co2
+%dump_nek_con(fout,Hexes,0,ifperm);      % mesh.co2
 
 
 fprintf('FINISH, reaching EOF\n');

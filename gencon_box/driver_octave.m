@@ -49,9 +49,11 @@ switch iversion
    otherwise
       fprintf('iversion = %d is not support! [1/2/3/-1]',iversion); error();
 end
+ifperm=0;
 
 fout = sprintf('%s/nelx%d_nely%d_nelz%d',cname,nelx,nely,nelz);
-dump_nek_con(fout,Hexes,1);      % .co2
-%dump_nek_con(fout,Hexes,0);     % .con
+fprintf('  dump into file %s ...\n',fout);
+dump_nek_con(fout,Hexes,1,ifperm);      % .co2
+%dump_nek_con(fout,Hexes,0,ifperm);     % .con
 
 fprintf('FINISH, reaching EOF\n');
