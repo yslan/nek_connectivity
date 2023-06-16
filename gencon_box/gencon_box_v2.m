@@ -1,22 +1,24 @@
-function Hexes = gencon_box_v2(nelx,nely,nelz)
+function Hexes = gencon_box_v2(nelx,nely,nelz,iperx,ipery,iperz)
 fprintf('  generating connectivity ...')
 
 E = nelx*nely*nelz;
 Hexes = zeros(E,8);
 
-lx = nelx + 1;
-ly = nely + 1;
-lz = nelz + 1;
+lx=nelx+1; xlist=1:lx; if (iperx==1); xlist=[1:nelx,1]; lx=lx-1; end
+ly=nely+1; ylist=1:ly; if (ipery==1); ylist=[1:nely,1]; ly=ly-1; end
+lz=nelz+1; zlist=1:lz; if (iperz==1); zlist=[1:nelz,1]; lz=lz-1; end
 
 % version 2, faster but mem bounded
 t0=tic;
 
-[ex,ey,ez] = ndgrid(1:nelx,1:nely,1:nelz);
-ex=ex(:);ey=ey(:);ez=ez(:);
+[ex0,ey0,ez0] = ndgrid(xlist(1:nelx),    ylist(1:nely),    zlist(1:nelz));
+[ex1,ey1,ez1] = ndgrid(xlist(2:(nelx+1)),ylist(2:(nely+1)),zlist(2:(nelz+1)));
+ex0=ex0(:);ey0=ey0(:);ez0=ez0(:);
+ex1=ex1(:);ey1=ey1(:);ez1=ez1(:);
 
-ix = [ex, ex+1, ex, ex+1, ex, ex+1, ex, ex+1];
-iy = [ey, ey, ey+1, ey+1, ey, ey, ey+1, ey+1];
-iz = [ez, ez, ez, ez, ez+1, ez+1, ez+1, ez+1];
+ix = [ex0, ex1, ex0, ex1, ex0, ex1, ex0, ex1];
+iy = [ey0, ey0, ey1, ey1, ey0, ey0, ey1, ey1];
+iz = [ez0, ez0, ez0, ez0, ez1, ez1, ez1, ez1];
 
 itmp = (iz-1)*ly*lx + (iy-1)*lx + ix;
 Hexes= reshape(itmp,E,8);
