@@ -1,10 +1,14 @@
-genbox="/home/sean/Nek5000_repo/bin/genbox"
-gencon="/home/sean/Nek5000_repo/bin/gencon"
+genbox="/home/sean/Nek5000_repo_main/bin/genbox"
+gencon="/home/sean/Nek5000_repo_main/bin/gencon"
 
 src="../../gencon_box/"
 srco=$src"output/"
 srcn=`pwd`
 gencon_box="driver_octave.m"
+
+RED='\033[0;31m'
+GREEN='\033[;32m'
+NC='\033[0m'
 
 ex=40
 ey=30
@@ -84,6 +88,24 @@ mv $srco"nelx"$ex"_nely"$ey"_nelz"$ez"_per"$iperx$ipery$iperz".co2" $cnew".co2"
 gen_ref 
 gen_new
 
-python3 compare_con.py $cref $cnew 1 1
+rm log_tmp 2> /dev/null
+python3 compare_con.py $cref $cnew 1 1 > log_tmp
+
+itest=1
+ntest=1
+set +x; echo -e '\n'; cat log_tmp
+err1=`grep NA log_tmp`
+err2=`grep NEQ log_tmp`
+ok=`grep PASS log_tmp`
+tt=$1"  vs "$2
+if [ ! -z "$err1" ]; then
+  echo -e "\nTest: $tt ${RED}FAILED (NA) ($itest/$ntest)${NC}\n\n"
+  exit 1
+elif [ ! -z "$err2" ]; then
+  echo -e "\nTest: $tt ${RED}FAILED (NEQ) ($itest/$ntest)${NC}\n\n"
+  exit 1
+elif [ ! -z "$ok" ]; then
+  echo -e "\nTest: $tt ${GREEN}PASSED ($itest/$ntest) ${NC}\n\n"
+fi; set -x
 
 

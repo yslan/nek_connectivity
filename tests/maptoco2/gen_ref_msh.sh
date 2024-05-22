@@ -1,5 +1,8 @@
-gencon="/home/sean/Nek5000_v19/bin/gencon"
-genmap="/home/sean/Nek5000_v19/bin/genmap"
+
+: ${Nek5000_src:="~/Nek5000"}
+
+gencon="$Nek5000_src/bin/gencon"
+genmap="$Nek5000_src/bin/genmap"
 
 src="../../bin/"
 contoco2=$src"contoco2"

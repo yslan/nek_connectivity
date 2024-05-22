@@ -1,5 +1,7 @@
-n2to3="/home/sean/Nek5000_v19/bin/n2to3"
-gencon="/home/sean/Nek5000_v19/bin/gencon"
+: ${Nek5000_src:="~/Nek5000"}
+
+n2to3="$Nek5000_src/bin/n2to3"
+gencon="$Nek5000_src/bin/gencon"
 
 base="eddy2d"
 

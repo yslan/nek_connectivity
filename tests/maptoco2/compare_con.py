@@ -44,6 +44,8 @@ def read_co2(fname):
       elif (etagB == 6.54321):
 #        print('Reading big-endian file\n')
         emode = '>'
+      else:
+        print('invalid endian mode:', etagL, etagB)
 
       con=np.zeros((nv,nel),dtype=int)
       byte = f.read(4*(nv+1)); i=0

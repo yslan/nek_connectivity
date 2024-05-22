@@ -1,6 +1,7 @@
 #!/bin/bash
 #set -o xtrace
 set -x
+Nek5000_src="/home/sean/Nek5000_repo_main"
 
 src="../../bin/"
 con2to3=$src"con2to3"
@@ -30,7 +31,12 @@ fi
 # Generate ref mesh (by gencon)
 echo -e 'Generate ref con files (via gencon)...'
 rm log_ref 2> /dev/null
-./gen_ref_msh.sh > log_ref
+Nek5000_src=$Nek5000_src ./gen_ref_msh.sh > log_ref
+if [ $? -eq 1 ]; then
+   echo "./gen_ref_msh.sh error, see log_ref"
+   cat log_ref
+   exit 1
+fi
 
 itest=0; ntest=8
 # util func: Compare con files via python3 (numpy)
