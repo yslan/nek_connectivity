@@ -18,11 +18,16 @@
 - gencon\_box/ (MATLAB)
   - generate co2 file for a box
 
+- ./makstools gmsh2con/ 
+  - (python) extract connectivity from a gmsh (`.msh`) file
+
 - tests/
+  All tests need to check the path inside run.sh. TODO, we shoud read some common env var
   - co2tocon: do `./run.sh` (check path inside)  
   - con2to3: do `./run.sh` (need python3)  
     check path inside `run.sh` and `gen_ref_msh.sh`
   - maptoco2: do `./run.sh` (need python3)
     check path inside `run.sh` and `gen_ref_msh.sh`
+  - gmsh2con: do `./run.sh` 
 
 
