@@ -29,5 +29,6 @@
   - maptoco2: do `./run.sh` (need python3)
     check path inside `run.sh` and `gen_ref_msh.sh`
   - gmsh2con: do `./run.sh` 
+  - periodic: do `./run.sh` to test periodic with 2 or 3 layers
 
 
